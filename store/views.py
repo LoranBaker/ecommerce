@@ -8,27 +8,8 @@ import datetime
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.urls import reverse
 
-from jinja2 import Environment
 
 from .models import *
-
-
-
-
-def store(request):
-    if request.user.is_authenticated:
-        customer = request.user.customer
-        order, created = Order.objects.get_or_create(customer=customer, complete=False)
-        items = order.orderitem_set.all()
-        cartItems = order.get_cart_items
-    else:
-        items = []
-        order = {'get_cart_total': 0, 'get_cart_items': 0, 'shipping': False}
-        cartItems = order['get_cart_items']
-
-    products = Product.objects.all()
-    context = {'products': products, 'cartItems': cartItems}
-    return render(request, 'store/store.html', context)
 
 
 def cart(request):
@@ -62,7 +43,7 @@ def checkout(request):
 
 
 def updateItem(request):
-    data = json.load(request.body)
+    data = json.loads(request.body)
     productId = data['productId']
     action = data['action']
 
@@ -88,18 +69,9 @@ def updateItem(request):
     return JsonResponse("Item was added", safe=False)
 
 
-def environment(**options):
-    env = Environment(**options)
-    env.globals.update({
-        'static': staticfiles_storage.url,
-        'url': reverse,
-    })
-    return env
-
-
 def processOrder(request):
     transaction_id = datetime.datetime.now().timestamp()
-    data = json.load(request.body)
+    data = json.loads(request.body)
 
     if request.use.is_authenticated:
         customer = request.user.customer
